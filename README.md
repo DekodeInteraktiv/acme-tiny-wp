@@ -13,17 +13,7 @@ The only prerequisites are python and openssl.
 
 **PLEASE READ THE SOURCE CODE! YOU MUST TRUST IT WITH YOUR PRIVATE KEYS!**
 
-##Donate
-
-If this script is useful to you, please donate to the EFF. I don't work there,
-but they do fantastic work.
-
-[https://eff.org/donate/](https://eff.org/donate/)
-
 ## How to use this script
-
-If you already have a Let's Encrypt issued certificate and just want to renew,
-you should only have to do Steps 3 and 6.
 
 ### Step 1: Create a Let's Encrypt account private key (if you haven't already)
 
