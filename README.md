@@ -4,6 +4,9 @@ This is a fork of [acme-tiny](https://github.com/diafygi/acme-tiny) by Daniel Ro
 modified to answer ACME challenges via the [WP ACME](https://github.com/dss-web/wp-acme)
 WordPress plugin by DSS/Dekode.
 
+It is also modified to take arguments to fetch and store the intermediate certificate in
+`--chain-file` and `--fullchain-file`.
+
 ## acme-tiny
 This is a tiny, auditable script that you can throw on your server to issue
 and renew [Let's Encrypt](https://letsencrypt.org/) certificates. Since it has
