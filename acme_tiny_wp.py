@@ -9,7 +9,7 @@ except ImportError:
 DEFAULT_CA = "https://acme-v01.api.letsencrypt.org"
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.addHandler(logging.StreamHandler())
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.setLevel(logging.INFO)
 
 def get_crt(account_key, csr, wp_url, wp_secret, log=LOGGER, CA=DEFAULT_CA):
@@ -18,7 +18,7 @@ def get_crt(account_key, csr, wp_url, wp_secret, log=LOGGER, CA=DEFAULT_CA):
         return base64.urlsafe_b64encode(b).decode('utf8').replace("=", "")
 
     # parse account key to get public key
-    log.info("Parsing account key...")
+    log.debug("Parsing account key...")
     proc = subprocess.Popen(["openssl", "rsa", "-in", account_key, "-noout", "-text"],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -66,7 +66,7 @@ def get_crt(account_key, csr, wp_url, wp_secret, log=LOGGER, CA=DEFAULT_CA):
          "\n".join(textwrap.wrap(base64.b64encode(body).decode("utf8"), 64)))
 
     # find domains
-    log.info("Parsing CSR...")
+    log.debug("Parsing CSR...")
     proc = subprocess.Popen(["openssl", "req", "-in", csr, "-noout", "-text"],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -83,21 +83,22 @@ def get_crt(account_key, csr, wp_url, wp_secret, log=LOGGER, CA=DEFAULT_CA):
                 domains.add(san[4:])
 
     # get the certificate domains and expiration
-    log.info("Registering account...")
+    log.debug("Registering account...")
     code, result, info = _send_signed_request(CA + "/acme/new-reg", {
         "resource": "new-reg",
         "agreement": "https://letsencrypt.org/documents/LE-SA-v1.1.1-August-1-2016.pdf",
     })
     if code == 201:
-        log.info("Registered!")
+        log.debug("Registered!")
     elif code == 409:
-        log.info("Already registered!")
+        log.debug("Already registered!")
     else:
         raise ValueError("Error registering: {0} {1}".format(code, result))
 
     # verify each domain
+    log.info("Verifying domains...")
     for domain in domains:
-        log.info("Verifying {0}...".format(domain))
+        log.debug("Verifying {0}...".format(domain))
 
         # get new challenge
         code, result, info = _send_signed_request(CA + "/acme/new-authz", {
@@ -164,12 +165,14 @@ def get_crt(account_key, csr, wp_url, wp_secret, log=LOGGER, CA=DEFAULT_CA):
             if challenge_status['status'] == "pending":
                 time.sleep(2)
             elif challenge_status['status'] == "valid":
-                log.info("{0} verified!".format(domain))
+                log.debug("{0} verified!".format(domain))
                 cleanup(domain, token, wp_url, wp_secret)
                 break
             else:
                 raise ValueError("{0} challenge did not pass: {1}".format(
                     domain, challenge_status))
+
+    log.info("Domains verified.")
 
     # get the new certificate
     log.info("Signing certificate...")
