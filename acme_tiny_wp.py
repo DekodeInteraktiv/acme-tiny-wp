@@ -86,7 +86,7 @@ def get_crt(account_key, csr, wp_url, wp_secret, log=LOGGER, CA=DEFAULT_CA):
     log.debug("Registering account...")
     code, result, info = _send_signed_request(CA + "/acme/new-reg", {
         "resource": "new-reg",
-        "agreement": "https://letsencrypt.org/documents/LE-SA-v1.1.1-August-1-2016.pdf",
+        "agreement": json.loads(urlopen(CA + "/directory").read().decode('utf8'))['meta']['terms-of-service'],
     })
     if code == 201:
         log.debug("Registered!")
